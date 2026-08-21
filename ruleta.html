@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ruleta de la Mesa</title>
+</head>
+<body>
+    <h1 id="tituloMesa"></h1>
+    <!-- Aquí iría tu código actual de la ruleta -->
+    <div id="ruletaContainer"></div>
+
+    <script>
+        // 1. Leer qué mesa llegó por la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const mesa = urlParams.get('mesa') || '1';
+        
+        document.getElementById('tituloMesa').innerText = `Ruleta para la Mesa ${mesa}`;
+
+        // 2. Base de datos simulada de nombres por mesa
+        const listasPorMesa = {
+            "1": ["Ana", "Carlos", "Bea"],
+            "2": ["David", "Elena", "Fran"],
+            "3": ["Lucas", "Sofía", "Mateo"]
+        };
+
+        // Obtener los nombres de la mesa seleccionada (si no existe, usa una por defecto)
+        const participantes = listasPorMesa[mesa] || ["Participante 1", "Participante 2"];
+
+        console.log("Nombres cargados para esta mesa:", participantes);
+        // Aquí integras la variable 'participantes' dentro de la lógica de giro de tu ruleta existente.
+    </script>
+</body>
+</html>
