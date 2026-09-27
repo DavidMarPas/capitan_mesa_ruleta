@@ -33,9 +33,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
         }
-        canvas.sin-transicion {
-            transition: none;
-        }
         .flecha {
             position: absolute;
             top: -15px;
@@ -64,23 +61,12 @@
         }
         button:active { transform: scale(0.95); }
         button:hover { background-color: #ffd633; }
-        button:disabled {
-            background-color: #999;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
         #resultado {
             margin-top: 20px;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: bold;
             min-height: 40px;
             color: #ffcc00;
-        }
-        #listaCapitanes {
-            margin-top: 5px;
-            font-size: 1rem;
-            color: white;
-            min-height: 20px;
         }
         .volver {
             margin-top: 15px;
@@ -98,7 +84,7 @@
 
     <h1>Descubre al capitán</h1>
     <div id="subtituloMesa">Mesa X</div>
-
+    
     <div class="ruleta-container">
         <div class="flecha"></div>
         <canvas id="canvasRuleta" width="400" height="400"></canvas>
@@ -106,65 +92,56 @@
 
     <button id="btnGirar" onclick="girarRuleta()">¡GIRAR!</button>
     <div id="resultado"></div>
-    <div id="listaCapitanes"></div>
-
+    
     <button class="volver" onclick="window.location.href='index.html'">Cambiar de mesa</button>
 
     <script>
         // 1. Capturar el número de mesa de la URL (por defecto la mesa 1 si no hay nada)
         const urlParams = new URLSearchParams(window.location.search);
         const numeroMesa = urlParams.get('mesa') || '1';
+        document.getElementById('subtituloMesa').innerText = `Mesa número ${numeroMesa}`; // se corrige abajo en el DOM
         document.getElementById('subtituloMesa').innerText = `Mesa ${numeroMesa}`;
 
-        // 2. Definir las listas de nombres por cada mesa y quién(es) gana(n).
-        //    "capitanes" es la lista de nombres que deben salir, en el orden en que
-        //    quieres que se vayan revelando. Pon solo uno si la mesa tiene un único
-        //    capitán, o varios si quieres varias tiradas para esa mesa.
+        // 2. Definir las listas de nombres por cada mesa y quién gana (índice del 0 en adelante)
         const configuracionMesas = {
             "1": {
-                nombres: ["Loli", "Marta", "Alejandro", "Celia", "Rocío", "Aarón", "Mireia", "Pedro"],
-                capitanes: ["Loli", "Pedro"] // Ejemplo: esta mesa tiene 2 capitanes
+                nombres: ["Loli", "Marta", "Alejandro", "Celia","Rocío", "Aarón", "Mireia", "Pedro"],
+                ganadorIndex: 0 // Gana Loli
             },
             "2": {
                 nombres: ["Rocío", "Aarón", "Mireia", "Pedro"],
-                capitanes: ["Rocío"]
+                ganadorIndex: 0
             },
             "3": {
                 nombres: ["Sofía", "Lucas", "Mateo", "Lucía", "Carlos"],
-                capitanes: ["Sofía"]
+                ganadorIndex: 0
             }
         };
 
         // Si la mesa introducida no está en el listado, ponemos una por defecto para que no falle
         const datosMesa = configuracionMesas[numeroMesa] || {
             nombres: ["Participante 1", "Participante 2", "Participante 3"],
-            capitanes: ["Participante 1"]
+            ganadorIndex: 0
         };
 
-        // Copia de trabajo de los nombres: se irán eliminando de aquí los que ya han ganado
-        let nombresRestantes = [...datosMesa.nombres];
-        const capitanesObjetivo = datosMesa.capitanes;
-        const capitanesEncontrados = [];
-        let tiradaActual = 0; // índice dentro de capitanesObjetivo
-
+        const nombres = datosMesa.nombres;
+        let ganadorFijoIndex = datosMesa.ganadorIndex;
+        
         // Configuración de la ruleta
         const canvas = document.getElementById('canvasRuleta');
         const ctx = canvas.getContext('2d');
-        let numSectores = nombresRestantes.length;
-        let arco = 2 * Math.PI / numSectores;
+        const numSectores = nombres.length;
+        const arco = 2 * Math.PI / numSectores;
         let anguloActual = 0;
         let girando = false;
 
         const colores = [
-            "#e74c3c", "#3498db", "#2ecc71", "#f1c40f",
-            "#9b59b6", "#e67e22", "#1abc9c", "#34495e",
+            "#e74c3c", "#3498db", "#2ecc71", "#f1c40f", 
+            "#9b59b6", "#e67e22", "#1abc9c", "#34495e", 
             "#d35400", "#27ae60", "#2980b9", "#8e44ad"
         ];
 
         function dibujarRuleta() {
-            numSectores = nombresRestantes.length;
-            arco = 2 * Math.PI / numSectores;
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const centro = canvas.width / 2;
             const radio = centro - 10;
@@ -186,87 +163,28 @@
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#fff";
                 ctx.font = "bold 16px sans-serif";
-                ctx.fillText(nombresRestantes[i], radio - 20, 6);
+                ctx.fillText(nombres[i], radio - 20, 6);
                 ctx.restore();
-            }
-        }
-
-        function actualizarListaCapitanes() {
-            if (capitanesObjetivo.length > 1 && capitanesEncontrados.length > 0) {
-                document.getElementById('listaCapitanes').innerText =
-                    `Capitanes hasta ahora: ${capitanesEncontrados.join(', ')}`;
             }
         }
 
         function girarRuleta() {
             if (girando) return;
-            if (tiradaActual >= capitanesObjetivo.length) return; // ya no quedan tiradas
-
             girando = true;
             document.getElementById('resultado').innerText = "";
-            document.getElementById('btnGirar').disabled = true;
 
-            // Nombre que debe salir en esta tirada
-            const nombreGanador = capitanesObjetivo[tiradaActual];
-            const ganadorIndex = nombresRestantes.indexOf(nombreGanador);
-
-            if (ganadorIndex === -1) {
-                // El nombre configurado no está en la lista de restantes (typo o ya salió antes)
-                document.getElementById('resultado').innerText =
-                    `⚠️ "${nombreGanador}" no está en la ruleta de esta mesa.`;
-                girando = false;
-                document.getElementById('btnGirar').disabled = false;
-                return;
-            }
-
-            let vueltasExtra = 5;
+            let vueltasExtra = 5; 
             const anguloPorSector = 2 * Math.PI / numSectores;
+            
+            const centroSectorGanador = (ganadorFijoIndex * anguloPorSector) + (anguloPorSector / 2);
+            let anguloFinalObjetivo = (2 * Math.PI * vueltasExtra) + ((3 * Math.PI / 2) - centroSectorGanador);
 
-            const centroSectorGanador = (ganadorIndex * anguloPorSector) + (anguloPorSector / 2);
-            let anguloFinalObjetivo = (2 * Math.PI * vueltasExtra) + ((3 * Math.PI / 2) - centroSectorGanador) + anguloActual;
-
-            canvas.classList.remove('sin-transicion');
             canvas.style.transform = `rotate(${anguloFinalObjetivo}rad)`;
 
             setTimeout(() => {
                 girando = false;
                 anguloActual = anguloFinalObjetivo % (2 * Math.PI);
-
-                capitanesEncontrados.push(nombreGanador);
-                tiradaActual++;
-
-                const quedanTiradas = tiradaActual < capitanesObjetivo.length;
-
-                if (quedanTiradas) {
-                    document.getElementById('resultado').innerText =
-                        `🎉 ¡Capitán ${tiradaActual}: ${nombreGanador}! 🎉`;
-                } else {
-                    document.getElementById('resultado').innerText =
-                        capitanesObjetivo.length > 1
-                            ? `🎉 ¡Último capitán: ${nombreGanador}! 🎉`
-                            : `🎉 ¡Capitán: ${nombreGanador}! 🎉`;
-                }
-                actualizarListaCapitanes();
-
-                // Quitar al ganador de la ruleta y redibujar sin animación de transform
-                nombresRestantes.splice(ganadorIndex, 1);
-
-                if (nombresRestantes.length > 0) {
-                    canvas.classList.add('sin-transicion');
-                    anguloActual = 0;
-                    canvas.style.transform = `rotate(0rad)`;
-                    // Forzar reflow para que el cambio de transform sin transición se aplique ya
-                    void canvas.offsetWidth;
-                    dibujarRuleta();
-                }
-
-                if (quedanTiradas) {
-                    document.getElementById('btnGirar').innerText = `¡GIRAR de nuevo (capitán ${tiradaActual + 1})!`;
-                    document.getElementById('btnGirar').disabled = false;
-                } else {
-                    document.getElementById('btnGirar').innerText = "¡Ya están todos los capitanes!";
-                    document.getElementById('btnGirar').disabled = true;
-                }
+                document.getElementById('resultado').innerText = `🎉 ¡Capitán: ${nombres[ganadorFijoIndex]}! 🎉`;
             }, 4000);
         }
 
