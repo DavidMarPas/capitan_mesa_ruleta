@@ -7,9 +7,10 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #1e3c72, #2a5298) fixed;
             color: white;
             text-align: center;
+            box-sizing: border-box;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -50,9 +51,44 @@
         }
         button:active { transform: scale(0.95); }
         button:hover { background-color: #ffd633; }
+        #infoBtn {
+            position: fixed; top: 15px; right: 15px;
+            padding: 10px 18px; font-size: 1rem;
+        }
+        #infoModal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10,20,40,0.92);
+            z-index: 1000; overflow-y: auto;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #infoModal.open { display: flex; }
+        .modal-box {
+            background: white; color: #333; border-radius: 16px;
+            padding: 25px; max-width: 420px; width: 100%; text-align: left;
+        }
+        .modal-box h2 { margin-top: 0; }
+        .modal-box ul { padding-left: 20px; line-height: 1.5; }
+        .modal-box button { display: block; margin: 15px auto 0; }
     </style>
 </head>
 <body>
+
+    <button id="infoBtn" type="button" aria-label="Información" title="Objetivos de los capitanes de mesa">Objetivos del capitán</button>
+
+    <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+        <div class="modal-box">
+            <h2 id="infoTitle">Objetivos de los capitanes de mesa</h2>
+            <ul>
+                <li>Consigue una foto de los novios con toda tu mesa.</li>
+                <li>Consigue que toda la mesa se tome un chupito.</li>
+                <li>Grabar un mini-vídeo con toda la mesa haciendo una coreografía improvisada para el recuerdo de la boda..</li>
+                <li>Gritar ¡Vivan los novios! al menos una vez durante la noche.</li>
+            </ul>
+            <h4>Nota para el capitán:</h4>
+            <p>Estas misiones son opcionales y no suponen una obligación. Solo queremos que te sientas cómodo y disfrutes del evento intentando animar también a tu mesa.</p>
+            <button type="button" id="closeInfo">Cerrar</button>
+        </div>
+    </div>
 
     <h1>Descubre al capitán</h1>
     <p>Introduce tu número de mesa para continuar:</p>
@@ -63,6 +99,12 @@
     </form>
 
     <script>
+        const infoModal = document.getElementById('infoModal');
+        document.getElementById('infoBtn').addEventListener('click', () => infoModal.classList.add('open'));
+        document.getElementById('closeInfo').addEventListener('click', () => infoModal.classList.remove('open'));
+        infoModal.addEventListener('click', e => { if (e.target === infoModal) infoModal.classList.remove('open'); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') infoModal.classList.remove('open'); });
+
         document.getElementById('mesaForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const mesa = document.getElementById('numMesa').value;
