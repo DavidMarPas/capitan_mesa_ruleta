@@ -51,6 +51,14 @@
         }
         button:active { transform: scale(0.95); }
         button:hover { background-color: #ffd633; }
+        #mesas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
+        }
+        #mesas button { padding: 14px 10px; }
         #infoBtn {
             position: fixed; top: 15px; right: 15px;
             padding: 10px 18px; font-size: 1rem;
@@ -91,12 +99,9 @@
     </div>
 
     <h1>Descubre al capitán</h1>
-    <p>Introduce tu número de mesa para continuar:</p>
-    
-    <form id="mesaForm">
-        <input type="number" id="numMesa" placeholder="Ej. 1, 2, 3..." required min="1">
-        <button type="submit">Continuar</button>
-    </form>
+    <p>Selecciona tu mesa para continuar:</p>
+
+    <div id="mesas"></div>
 
     <script>
         const infoModal = document.getElementById('infoModal');
@@ -105,11 +110,14 @@
         infoModal.addEventListener('click', e => { if (e.target === infoModal) infoModal.classList.remove('open'); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') infoModal.classList.remove('open'); });
 
-        document.getElementById('mesaForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const mesa = document.getElementById('numMesa').value;
-            // Redirige a la ruleta pasando el número de mesa en la URL
-            window.location.href = `ruleta.html?mesa=${mesa}`;
+        const mesasDisponibles = [31, 32, 33, 34, 41, 42, 43, 44, 51, 54];
+        const contenedor = document.getElementById('mesas');
+        mesasDisponibles.forEach(n => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = `Mesa ${n}`;
+            b.addEventListener('click', () => { window.location.href = `ruleta.html?mesa=${n}`; });
+            contenedor.appendChild(b);
         });
     </script>
 </body>
